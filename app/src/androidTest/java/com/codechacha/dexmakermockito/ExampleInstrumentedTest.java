@@ -16,12 +16,17 @@ import static com.android.dx.mockito.inline.extended.ExtendedMockito.doReturn;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSession;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.staticMockMarker;
+import static com.android.dx.mockito.inline.extended.ExtendedMockito.verify;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 
@@ -245,6 +250,32 @@ public class ExampleInstrumentedTest {
 
         when(originalT.echo("Marco")).thenReturn("Polo");
         assertEquals("Polo", originalT.echo("Marco"));
+    }
+
+
+    static class UtilClass {
+        public static String staticMethod(String str) {
+            return str;
+        }
+
+        public static void staticVoidMethod(String str) {
+            staticMethod(str);
+        }
+    }
+
+    @Test
+    public void testVerifyStaticMethod() {
+        MockitoSession session = mockitoSession().spyStatic(UtilClass.class).startMocking();
+        try {
+            UtilClass.staticVoidMethod("string");
+            UtilClass.staticMethod("string");
+            verify(() -> UtilClass.staticMethod("string"), atLeastOnce());
+            verify(() -> UtilClass.staticMethod("string"), times(2));
+            verify(() -> UtilClass.staticVoidMethod("string"), atLeastOnce());
+            verify(() -> UtilClass.staticVoidMethod("string"), atMost(2));
+        } finally {
+            session.finishMocking();
+        }
     }
 
 }
